@@ -200,6 +200,10 @@ n_iter = (30, 1)
 # {'reg__random_state': 42, 'reg__n_estimators': 372, 'reg__max_depth': 4, 'reg__learning_rate': 0.19244881624366028,
 #  'reg__gamma': 0.7983684048959909, 'reg__colsample_bytree': 0.6338551950579786}
 
+# 0.917247680296272
+# 0.7926032741911082
+# {'reg__random_state': 42, 'reg__n_estimators': 393, 'reg__max_depth': 5, 'reg__learning_rate': 0.18096184030841525,
+#  'reg__gamma': 0.6223292520026902, 'reg__colsample_bytree': 0.6672209435032146}
 params = {
     # 'reg__colsample_bylevel': np.random.uniform(0.1, 1., n_iter).flatten(),
     'reg__colsample_bytree': np.random.uniform(0.5, 0.7, n_iter).flatten(),
