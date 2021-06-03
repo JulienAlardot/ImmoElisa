@@ -1,3 +1,4 @@
+import json
 import os
 import time
 from typing import List
@@ -9,6 +10,9 @@ import xgboost as xgb
 from sklearn.impute import KNNImputer
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.pipeline import Pipeline
+
+with open("coord.json", "rt", encoding="utf-8") as f:
+    geo_data = json.load(f)
 
 pd.options.display.max_colwidth = 300
 pd.options.display.max_columns = 30
@@ -113,7 +117,7 @@ def clean_df(df):
     df = df.loc[np.logical_or(df["Price"] >= 10 ** 4, df["Price"].isna()), :]
     df.loc[df["Garden"] == 0, "Garden Area"] = 0
     df.loc[df["Terrace"] == 0, "Terrace Area"] = 0
-    df.where(df["Number of rooms"] >= 1, inplace=True)
+    # df.where(df["Number of rooms"] >= 1, inplace=True)
     df = df.loc[np.logical_or(df["Number of rooms"] < 125, df["Number of rooms"].isna()),
          :]  # Offers not available anymore or wrongly encoded
     df = df.loc[np.logical_or(df["Area"] >= 11, df["Area"].isna()), :]
@@ -123,6 +127,10 @@ def clean_df(df):
     bad_columns = df.isna().sum()[(df.isna().sum() / df.shape[0] * 100) > 75].sort_values(ascending=False).index
     df.drop(columns=bad_columns, inplace=True)
     df.drop(columns=['Garden', 'Terrace', 'Type of sale', 'Url'], inplace=True)
+    print(df.shape)
+    df = df.loc[np.isin(df["Locality"].astype(str), geo_data.keys()), :]
+    print(df.shape)
+
     df.reset_index(drop=True, inplace=True)
     return df
 
@@ -131,12 +139,25 @@ df: pd.DataFrame = pd.read_csv(
     'https://raw.githubusercontent.com/JulienAlardot/challenge-collecting-data/main/Data/database.csv', index_col=0,
     low_memory=False)
 
-df = clean_df(df)
-df.to_csv("database.csv")
+# df = clean_df(df)
+# df.to_csv("database.csv")
 
 df: pd.DataFrame = pd.read_csv("database.csv", index_col=0)
 df: pd.DataFrame = pd.read_csv("https://raw.githubusercontent.com/JulienAlardot/ImmoElizaVisu/main/clean_database.csv",
                                index_col=0)
+
+df = df.loc[np.isin(df["Locality"].astype(int).astype(str).values[:], list(geo_data.keys())), :]
+df["lat"] = df["Locality"].astype(int).astype(str).apply(lambda x: geo_data[x]["lat"])
+df["lng"] = df["Locality"].astype(int).astype(str).apply(lambda x: geo_data[x]["lng"])
+df.loc[df["Terrace"] == 0, "Terrace Area"] = 0
+df.loc[df["Terrace Area"] < 0, "Terrace Area"] = 0
+
+# df.loc[df["Garden"] == 0, "Garden Area"] = 0
+df.drop(columns=['Locality', 'Source_logic-immo.be', "Terrace"], inplace=True)
+for column in df.columns:
+    if column.lower().startswith("region") or column.lower().startswith("province"):
+        df = df.drop(columns=column)
+
 # df["Locality"] = df["Locality"].astype(str)
 # df = pd.get_dummies(df, drop_first=True)
 columns = df.columns
@@ -144,6 +165,9 @@ columns = df.columns
 df: np.ndarray = KNNImputer(n_neighbors=5).fit_transform(df.values)
 np.save("database.npy", df)
 df = pd.DataFrame(np.load("database.npy"), columns=columns)
+print(df.shape)
+
+df.to_csv("database.csv")
 X: np.ndarray = df.drop(columns=["Price"]).values
 y: np.ndarray = df["Price"].values
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
@@ -204,20 +228,36 @@ n_iter = (30, 1)
 # 0.7926032741911082
 # {'reg__random_state': 42, 'reg__n_estimators': 393, 'reg__max_depth': 5, 'reg__learning_rate': 0.18096184030841525,
 #  'reg__gamma': 0.6223292520026902, 'reg__colsample_bytree': 0.6672209435032146}
+# 0.9869396159270368
+# 0.7801572719679025
+# {'reg__random_state': 42, 'reg__n_estimators': 585, 'reg__max_depth': 8, 'reg__learning_rate': 0.17322609079644039,
+#  'reg__gamma': 0.9963230807396372, 'reg__colsample_bytree': 0.6909705895347378}
+# 0.9052367378216932
+# 0.7803710637069743
+# {'reg__random_state': 42, 'reg__n_estimators': 404, 'reg__max_depth': 6, 'reg__learning_rate': 0.08422514938256685,
+#  'reg__gamma': 0.6292582111150484, 'reg__colsample_bytree': 0.6027952751910048}
+# 0.9274762800150552
+# 0.7863753705643247
+# {'reg__random_state': 42, 'reg__n_estimators': 536, 'reg__max_depth': 7, 'reg__learning_rate': 0.058417768168456986,
+#  'reg__gamma': 0.8893281747732737, 'reg__colsample_bytree': 0.5388503540959062}
+# 0.9590479986844843
+# 0.79488697635022
+# {'reg__random_state': 42, 'reg__n_estimators': 604, 'reg__max_depth': 8, 'reg__learning_rate': 0.07137287160659607,
+#  'reg__gamma': 0.42182404638273713, 'reg__colsample_bytree': 0.5178480668480605}
 params = {
     # 'reg__colsample_bylevel': np.random.uniform(0.1, 1., n_iter).flatten(),
-    'reg__colsample_bytree': np.random.uniform(0.5, 0.7, n_iter).flatten(),
-    "reg__gamma": np.random.uniform(.4, 0.8, n_iter).flatten(),
-    "reg__learning_rate": np.random.uniform(0.12, 0.2, n_iter).flatten(),  # default 0.1
-    "reg__max_depth": np.random.randint(4, 6, 2).flatten(),  # default 3
-    "reg__n_estimators": np.random.randint(300, 400, n_iter).flatten(),  # default 100
+    'reg__colsample_bytree': np.random.uniform(0.2, 0.8, n_iter).flatten(),
+    "reg__gamma": np.random.uniform(.4, .9, n_iter).flatten(),
+    "reg__learning_rate": np.random.uniform(0.001, 0.6, n_iter).flatten(),  # default 0.1
+    "reg__max_depth": np.random.randint(3, 9, n_iter).flatten(),  # default 3
+    "reg__n_estimators": np.random.randint(300, 700, n_iter).flatten(),  # default 100
     # "reg__subsample": np.random.uniform(0.1, 1., n_iter).flatten(),
     "reg__random_state": [42]
 
 }
 print(time.ctime())
-gs: RandomizedSearchCV = RandomizedSearchCV(estimator=pipe, n_iter=200, param_distributions=params,
-                                            n_jobs=os.cpu_count() * 4 // 8, cv=3, verbose=3)
+gs: RandomizedSearchCV = RandomizedSearchCV(estimator=pipe, n_iter=1000, param_distributions=params,
+                                            n_jobs=os.cpu_count() * 7 // 8, cv=3, verbose=3)
 gs.fit(X_train, y_train)
 print(time.ctime())
 # pipe.fit(X_train, y_train)
