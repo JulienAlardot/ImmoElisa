@@ -26,5 +26,5 @@ jobs:
     - name: execute streamlit # email-from-python.py
         env: 
           MAPBOXTOKEN: ${{ secrets.MAPBOXTOKEN }}
-        run: streamlit run vis.py
+        run: python storetoken.py
 
