@@ -1,13 +1,11 @@
 import asyncio
 import json
 import pickle
-import random
 
 import numpy as np
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-import plotly.io as pio
 
 st.set_page_config(page_title="Immo Eliza Project", layout="wide")
 
