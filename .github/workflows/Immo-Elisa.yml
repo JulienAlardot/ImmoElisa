@@ -28,3 +28,7 @@ jobs:
        MAPBOXTOKEN: ${{ secrets.MAPBOXTOKEN }}
       run: python storetoken.py
 
+    - name: deploy
+      run: streamlit run vis.py
+
+
