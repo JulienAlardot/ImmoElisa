@@ -1,4 +1,7 @@
 /venv/
 /.idea/
 /sklearn_cache/
+/tmp/
+/log/
+*.log
 tk.pkl
