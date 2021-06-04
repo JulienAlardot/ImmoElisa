@@ -1,0 +1,13 @@
+[global]
+showWarningOnDirectExecution = false
+
+[logger]
+level="info"
+
+[client]
+caching = true
+
+[server]
+headless = true
+runOnSave = true
+port = 1802

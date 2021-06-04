@@ -159,7 +159,7 @@ for column in df.columns:
         df = df.drop(columns=column)
 
 p_c:pd.DataFrame = pd.read_csv("postal_codes.csv", sep=";", index_col=0)
-p_c.loc[:, "name"] = p_c.loc[:, "name"] + ", "
+p_c.loc[:, "Name"] = p_c.loc[:, "Name"] + ", "
 p_c = p_c.groupby("zipcode").sum(numeric_only=False)
 for i, row in p_c.iterrows():
     if row[-1].endswith(", "):
@@ -168,7 +168,7 @@ for i, row in p_c.iterrows():
 
 
 df_vis = df.copy()
-df_vis["Price / m²"] =df["Price"]/df["Area"]
+df_vis["Price / m²"] = df["Price"]/df["Area"]
 
 df_count = df_vis.groupby("Locality").count()["Price"].reset_index()
 df_count["Count"] = df_count["Price"]
@@ -185,6 +185,7 @@ mean_df["Mean Price"] = mean_df["Mean Price"].astype(str) + " €"
 mean_df.drop(columns=["Price"], inplace=True)
 
 med_df["Median Price"] = np.round(med_df["Price"], 2)
+med_df["Color"] = med_df["Median Price"]
 med_df["Median Price"] = med_df["Median Price"].astype(str) + " €"
 med_df.drop(columns=["Price"], inplace=True)
 
@@ -199,6 +200,8 @@ prsqrm_median_df.drop(columns=["Price / m²"], inplace=True)
 for dataframe in (df_count, mean_df, med_df, prsqrm_mean_df, prsqrm_median_df):
     print(dataframe)
     df_vis = pd.merge(df_vis, dataframe, "left", "Locality", suffixes=("", ""))
+
+df_vis = pd.merge(df_vis, p_c, "left", left_on="Locality",right_on="zipcode", suffixes=("", ""))
 
 df_vis.to_csv("database_visu.csv")
 df.drop(columns=['Locality'], inplace=True)
@@ -266,7 +269,7 @@ params = {
 }
 print(time.ctime())
 gs: RandomizedSearchCV = RandomizedSearchCV(estimator=pipe, n_iter=500, param_distributions=params,
-                                            n_jobs=os.cpu_count() * 5 // 8, cv=3, verbose=3)
+                                            n_jobs=os.cpu_count() * 20 // 100, cv=3, verbose=3)
 gs.fit(X_train, y_train)
 print(time.ctime())
 # pipe.fit(X_train, y_train)
