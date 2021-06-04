@@ -153,10 +153,55 @@ df.loc[df["Terrace"] == 0, "Terrace Area"] = 0
 df.loc[df["Terrace Area"] < 0, "Terrace Area"] = 0
 
 # df.loc[df["Garden"] == 0, "Garden Area"] = 0
-df.drop(columns=['Locality', 'Source_logic-immo.be', "Terrace"], inplace=True)
+df.drop(columns=['Source_logic-immo.be', "Terrace"], inplace=True)
 for column in df.columns:
     if column.lower().startswith("region") or column.lower().startswith("province"):
         df = df.drop(columns=column)
+
+p_c:pd.DataFrame = pd.read_csv("postal_codes.csv", sep=";", index_col=0)
+p_c.loc[:, "name"] = p_c.loc[:, "name"] + ", "
+p_c = p_c.groupby("zipcode").sum(numeric_only=False)
+for i, row in p_c.iterrows():
+    if row[-1].endswith(", "):
+        row[-1] = row[-1][:-2]
+    p_c.loc[i, :] = row
+
+
+df_vis = df.copy()
+df_vis["Price / m²"] =df["Price"]/df["Area"]
+
+df_count = df_vis.groupby("Locality").count()["Price"].reset_index()
+df_count["Count"] = df_count["Price"]
+
+df_count.drop(columns=["Price"], inplace=True)
+mean_df = df_vis.groupby(["Locality"]).mean().reset_index()[["Price", "Locality"]]
+med_df = df_vis.groupby(["Locality"]).median().reset_index()[["Price", "Locality"]]
+prsqrm_mean_df = df_vis.groupby(["Locality"]).mean().reset_index()[["Price / m²", "Locality"]]
+prsqrm_median_df = df_vis.groupby(["Locality"]).median().reset_index()[["Price / m²", "Locality"]]
+df_vis.groupby("Locality").mean().drop(columns=["Price"]).reset_index(inplace=True)
+
+mean_df["Mean Price"] = np.round(mean_df["Price"],2)
+mean_df["Mean Price"] = mean_df["Mean Price"].astype(str) + " €"
+mean_df.drop(columns=["Price"], inplace=True)
+
+med_df["Median Price"] = np.round(med_df["Price"], 2)
+med_df["Median Price"] = med_df["Median Price"].astype(str) + " €"
+med_df.drop(columns=["Price"], inplace=True)
+
+prsqrm_mean_df["Mean Price / m²"] = np.round(prsqrm_mean_df["Price / m²"], 2)
+prsqrm_mean_df["Mean Price / m²"] = prsqrm_mean_df["Mean Price / m²"].astype(str) + " €/m²"
+prsqrm_mean_df.drop(columns=["Price / m²"], inplace=True)
+
+prsqrm_median_df["Median Price / m²"] = np.round(prsqrm_median_df["Price / m²"], 2)
+prsqrm_median_df["Median Price / m²"] = prsqrm_median_df["Median Price / m²"].astype(str) + " €/m²"
+prsqrm_median_df.drop(columns=["Price / m²"], inplace=True)
+
+for dataframe in (df_count, mean_df, med_df, prsqrm_mean_df, prsqrm_median_df):
+    print(dataframe)
+    df_vis = pd.merge(df_vis, dataframe, "left", "Locality", suffixes=("", ""))
+
+df_vis.to_csv("database_visu.csv")
+df.drop(columns=['Locality'], inplace=True)
 
 # df["Locality"] = df["Locality"].astype(str)
 # df = pd.get_dummies(df, drop_first=True)
@@ -188,46 +233,6 @@ pipe: Pipeline = Pipeline(steps=steps)
 #     "reg__random_state": [42]
 # }
 n_iter = (30, 1)
-# 0.8785173377264895
-# 0.7157823231265649
-# {'reg__subsample': 0.9797222005293017, 'reg__random_state': 42, 'reg__n_estimators': 328, 'reg__max_depth': 5,
-#  'reg__learning_rate': 0.19463485960181195, 'reg__gamma': 0.14790626224466663,
-#  'reg__colsample_bytree': 0.8702556952587032, 'reg__colsample_bylevel': 0.4990910003749124}
-
-# 0.87868669132923
-# 0.7210963293130916
-# {'reg__subsample': 0.9132431570611518, 'reg__random_state': 42, 'reg__n_estimators': 368, 'reg__max_depth': 5,
-#  'reg__learning_rate': 0.13752665971992017, 'reg__gamma': 0.2792546800806579,
-#  'reg__colsample_bytree': 0.821384321745897, 'reg__colsample_bylevel': 0.9520802990142427}
-
-# 0.8346554607329777
-# 0.7680063492934566
-# {'reg__random_state': 42, 'reg__n_estimators': 282, 'reg__max_depth': 3, 'reg__learning_rate': 0.3519464421105537,
-#  'reg__gamma': 0.43511904972260096, 'reg__colsample_bytree': 0.863385123641318}
-
-# 0.8620983966280047
-# 0.7779025085957194
-# {'reg__random_state': 42, 'reg__n_estimators': 398, 'reg__max_depth': 4, 'reg__learning_rate': 0.17031374854894699,
-#  'reg__gamma': 0.782939727865437, 'reg__colsample_bytree': 0.4935127851580509}
-# 0.8686092117675117
-# 0.7772824406934563
-# {'reg__random_state': 42, 'reg__n_estimators': 398, 'reg__max_depth': 4, 'reg__learning_rate': 0.1936770956518794,
-#  'reg__gamma': 0.47425566971097893, 'reg__colsample_bytree': 0.49031824448203354}
-
-# 0.8827566437559508
-# 0.7879262473989432
-# {'reg__random_state': 42, 'reg__n_estimators': 390, 'reg__max_depth': 4, 'reg__learning_rate': 0.22583393758762554,
-#  'reg__gamma': 0.7370113058359546, 'reg__colsample_bytree': 0.670357922704685}
-
-# 0.8728306473999864
-# 0.7886444873001949
-# {'reg__random_state': 42, 'reg__n_estimators': 372, 'reg__max_depth': 4, 'reg__learning_rate': 0.19244881624366028,
-#  'reg__gamma': 0.7983684048959909, 'reg__colsample_bytree': 0.6338551950579786}
-
-# 0.917247680296272
-# 0.7926032741911082
-# {'reg__random_state': 42, 'reg__n_estimators': 393, 'reg__max_depth': 5, 'reg__learning_rate': 0.18096184030841525,
-#  'reg__gamma': 0.6223292520026902, 'reg__colsample_bytree': 0.6672209435032146}
 # 0.9869396159270368
 # 0.7801572719679025
 # {'reg__random_state': 42, 'reg__n_estimators': 585, 'reg__max_depth': 8, 'reg__learning_rate': 0.17322609079644039,
@@ -240,24 +245,28 @@ n_iter = (30, 1)
 # 0.7863753705643247
 # {'reg__random_state': 42, 'reg__n_estimators': 536, 'reg__max_depth': 7, 'reg__learning_rate': 0.058417768168456986,
 #  'reg__gamma': 0.8893281747732737, 'reg__colsample_bytree': 0.5388503540959062}
+# 0.9592934853879421
+# 0.7921232303847281
+# {'reg__random_state': 42, 'reg__n_estimators': 522, 'reg__max_depth': 8, 'reg__learning_rate': 0.08456187588526598,
+#  'reg__gamma': 0.4128132943639499, 'reg__colsample_bytree': 0.48962008652863986}
 # 0.9590479986844843
 # 0.79488697635022
 # {'reg__random_state': 42, 'reg__n_estimators': 604, 'reg__max_depth': 8, 'reg__learning_rate': 0.07137287160659607,
 #  'reg__gamma': 0.42182404638273713, 'reg__colsample_bytree': 0.5178480668480605}
 params = {
     # 'reg__colsample_bylevel': np.random.uniform(0.1, 1., n_iter).flatten(),
-    'reg__colsample_bytree': np.random.uniform(0.2, 0.8, n_iter).flatten(),
-    "reg__gamma": np.random.uniform(.4, .9, n_iter).flatten(),
-    "reg__learning_rate": np.random.uniform(0.001, 0.6, n_iter).flatten(),  # default 0.1
-    "reg__max_depth": np.random.randint(3, 9, n_iter).flatten(),  # default 3
-    "reg__n_estimators": np.random.randint(300, 700, n_iter).flatten(),  # default 100
+    'reg__colsample_bytree': np.random.uniform(0.2, 0.7, n_iter).flatten(),
+    "reg__gamma": np.random.uniform(.3, .8, n_iter).flatten(),
+    "reg__learning_rate": np.random.uniform(0.001, 0.5, n_iter).flatten(),  # default 0.1
+    "reg__max_depth": np.random.randint(4, 9, n_iter).flatten(),  # default 3
+    "reg__n_estimators": np.random.randint(400, 700, n_iter).flatten(),  # default 100
     # "reg__subsample": np.random.uniform(0.1, 1., n_iter).flatten(),
     "reg__random_state": [42]
 
 }
 print(time.ctime())
-gs: RandomizedSearchCV = RandomizedSearchCV(estimator=pipe, n_iter=1000, param_distributions=params,
-                                            n_jobs=os.cpu_count() * 7 // 8, cv=3, verbose=3)
+gs: RandomizedSearchCV = RandomizedSearchCV(estimator=pipe, n_iter=500, param_distributions=params,
+                                            n_jobs=os.cpu_count() * 5 // 8, cv=3, verbose=3)
 gs.fit(X_train, y_train)
 print(time.ctime())
 # pipe.fit(X_train, y_train)
