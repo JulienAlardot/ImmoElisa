@@ -1,1 +1,1 @@
-web: python storetoken.py sh setup.sh && streamlit run vis.py
+web: sh setup.sh && streamlit run vis.py
