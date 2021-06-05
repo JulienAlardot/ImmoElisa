@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import pickle
 
 import numpy as np
@@ -53,9 +54,7 @@ def load():
         model = pickle.load(f)
         coord = json.load(jf)
     df_vis = pd.read_csv("database_visu.csv", index_col=0)
-    with open("tk.pkl", "rb") as t:
-        token = pickle.load(t)
-        px.set_mapbox_access_token(token)
+    px.set_mapbox_access_token(os.environ.get("MAPBOXTOKEN"))
     return model, coord, geojson, df_vis
 
 async def load_async():
