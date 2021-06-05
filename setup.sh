@@ -1,4 +1,5 @@
-mkdir -p ~/.streamlit/echo "\
+mkdir -p ~/.streamlit/
+echo "\
 [global]\n\
 showWarningOnDirectExecution = false\n\
 \n\
