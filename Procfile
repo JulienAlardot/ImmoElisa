@@ -1,1 +1,1 @@
-web: streamlit run vis.py
+web: setup.sh && streamlit run vis.py
