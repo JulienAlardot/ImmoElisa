@@ -3,9 +3,7 @@
 * Repository: `challenge-regression`
 * Type of Challenge: `Consolidation`
 * Duration: `3 days`
-* Deadline: `24/11/2020 12:00` **(code)**
-* Presentation: `24/11/2020 14:00`
-* Team challenge : 4
+* Solo challenge
 
 
 ## Mission objectives 

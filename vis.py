@@ -5,22 +5,24 @@ import pickle
 
 import numpy as np
 import pandas as pd
-import streamlit as st
 import plotly.express as px
+import streamlit as st
 
 st.set_page_config(page_title="Immo Eliza Project", layout="wide")
 
 
-@st.cache(show_spinner=False, suppress_st_warning=True, hash_funcs={st.delta_generator.DeltaGenerator: lambda x: None} )
+@st.cache(show_spinner=False, suppress_st_warning=True, hash_funcs={st.delta_generator.DeltaGenerator: lambda x: None})
 def load_list(form):
     with open("ziplist.pkl", "rb") as f:
         s_zip = form.selectbox("Zipcode", pickle.load(f))
     return s_zip
 
+
 @st.cache(show_spinner=False, allow_output_mutation=True, suppress_st_warning=True)
 def plot_map(*args, **kwargs):
     # pio.renderers.default = 'browser'
     return px.choropleth_mapbox(*args, **kwargs)
+
 
 async def plot_map_async(df_vis, geojson):
     fig = plot_map(data_frame=df_vis,
@@ -46,6 +48,7 @@ async def plot_map_async(df_vis, geojson):
     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
     return fig
 
+
 @st.cache(hash_funcs={dict: lambda x: None}, show_spinner=False)
 def load():
     with open('postal_district.geojson') as f:
@@ -57,18 +60,17 @@ def load():
     px.set_mapbox_access_token(os.environ.get("MAPBOXTOKEN"))
     return model, coord, geojson, df_vis
 
+
 async def load_async():
-    r= load()
+    r = load()
     return r
 
 
 async def main():
-
     title = st.title("Immo Eliza Project")
     subtitle = st.subheader("Belgium Real estate price estimation powered by AI")
     st.markdown("---")
     loader_status = st.info("Loading Data Map ...")
-
 
     st.markdown(f"**Submit the parameters on the left sidebar to estimate the "
                 f"price for any house or appartment in Belgium**")
@@ -83,8 +85,8 @@ async def main():
     sb_type = form.radio("Property Type", ("Appartment", "House"))
     le_surface = form.number_input("Living suface (m²)", min_value=9)
     sb_building_state = form.radio("Property Type", ("Good", "Renovation required", "New"))
-    le_rooms = form.number_input("Amount of Rooms",min_value=1,max_value=999)
-    le_facades = form.number_input("Amount of facades",min_value=1,max_value=99)
+    le_rooms = form.number_input("Amount of Rooms", min_value=1, max_value=999)
+    le_facades = form.number_input("Amount of facades", min_value=1, max_value=99)
     sb_furnished = form.radio("Sold furnished", ("No", "Yes"))
     sb_fully_e_k = form.radio("Fully Equiped Kitchen", ("Yes", "No"))
     sb_open_fire = form.radio("Equipped with an open fire", ("No", "Yes"))
@@ -96,8 +98,6 @@ async def main():
     sb_plot_swimming_pool = form.radio("Swimming pool", ("No", "Yes"))
     submitted = form.form_submit_button("Submit")
 
-
-
     model, coord, geojson, df_vis = await loaded
     loading_bar.progress(9 / max)
     zipcode = s_zip
@@ -105,12 +105,12 @@ async def main():
     long, lat = coord[str(zipcode)]["lng"], coord[str(zipcode)]["lat"]
     loading_bar.progress(10 / max)
     entry = pd.DataFrame(np.zeros((1, 15)), columns=['Number of rooms', 'Area',
-                                                    'Fully equipped kitchen', 'Furnished', 'Open fire',
-                                                    'Terrace Area', 'Garden', 'Surface of the land',
-                                                    'Number of facades',
-                                                    'Swimming pool', 'Type of property_house',
-                                                    'State of the building_to renovate', 'State of the building_new',
-                                                    'lat', 'lng'], dtype=np.float64)
+                                                     'Fully equipped kitchen', 'Furnished', 'Open fire',
+                                                     'Terrace Area', 'Garden', 'Surface of the land',
+                                                     'Number of facades',
+                                                     'Swimming pool', 'Type of property_house',
+                                                     'State of the building_to renovate', 'State of the building_new',
+                                                     'lat', 'lng'], dtype=np.float64)
     entry["Number of rooms"] = n_rooms
     loading_bar.progress(12 / max)
 
@@ -135,7 +135,7 @@ async def main():
     loading_bar.progress(21 / max)
     entry["Type of property_house"] = 1 if sb_type == "House" else 0
     loading_bar.progress(22 / max)
-    entry["State of the building_to renovate"] = 1 if sb_building_state  == "Renovation required" else 0
+    entry["State of the building_to renovate"] = 1 if sb_building_state == "Renovation required" else 0
     loading_bar.progress(23 / max)
     entry["State of the building_new"] = 1 if sb_building_state == "New" else 0
     loading_bar.progress(24 / max)
@@ -149,7 +149,7 @@ async def main():
     loading_bar.progress(28 / max)
     pred_part = ""
     for i, char in enumerate(integer[::-1]):
-        if i%3 == 0:
+        if i % 3 == 0:
             pred_part += ','
         pred_part += char
     pred_int = str(pred_part[::-1])
@@ -174,75 +174,74 @@ async def main():
 
     st.header("About the project")
     st.markdown(
-    '''
-    ---
-    
-    <div align='justify'>
-    
-    Lorem ipsum dolor sit amet, 
-    consectetur adipiscing elit. 
-    Vivamus accumsan nec est eget convallis. 
-    Aliquam non eleifend neque, sed tincidunt risus. 
-    Nulla non lectus in lectus convallis ullamcorper. 
-    Nullam gravida tincidunt ante eget posuere. 
-    Nunc interdum velit in turpis pretium ornare. 
-    Quisque ultricies odio dignissim leo consectetur ornare. 
-    Integer tempus, ante sed faucibus ornare, ipsum neque laoreet eros, 
-    sed hendrerit arcu nisl vel enim. Morbi mollis est vel tristique ornare. 
-    Nulla condimentum aliquet mauris, eu consequat turpis.
-
-    Sed malesuada gravida orci, et bibendum elit. 
-    Interdum et malesuada fames ac ante ipsum primis in faucibus.
-    Sed scelerisque nulla finibus risus egestas, vel iaculis tortor finibus. 
-    Integer sagittis ac tellus ut dignissim. Pellentesque ut gravida lorem.
-    Nunc at arcu orci. Donec ornare urna a eleifend pretium. 
-    Vestibulum mattis volutpat mi, in rutrum neque ornare at. 
-    Etiam aliquam posuere tincidunt. Nam porttitor malesuada lectus, 
-    non bibendum turpis hendrerit ut. Pellentesque vestibulum risus eu auctor aliquam. 
-    Cras vehicula, magna vel feugiat placerat, urna nibh consectetur enim, 
-    ac tincidunt tellus ante eget ante. Ut venenatis, nisi nec ullamcorper semper, 
-    augue purus tristique dolor, at porta magna odio at augue. 
-    Donec bibendum neque tortor, ac finibus nisl hendrerit laoreet. 
-    Pellentesque in ante semper tellus posuere scelerisque.
-
-    Etiam molestie tortor dolor, ac sodales odio luctus eu. 
-    Nullam sodales, orci sit amet iaculis vehicula, purus arcu ultricies velit, 
-    at porttitor ipsum quam non urna. Pellentesque bibendum tempus massa. 
-    Maecenas non tortor facilisis, scelerisque orci malesuada, volutpat metus. 
-    Nulla nibh erat, semper id volutpat eu, malesuada vitae tellus. 
-    Nunc nec iaculis nulla. Donec malesuada eleifend lectus id pretium. 
-    In eu nibh quis ligula euismod luctus id nec mi. Aliquam sit amet eros dolor. 
-    Proin tristique eu purus id accumsan. Mauris ac rutrum tellus. Donec a sem metus.
-
-    Integer sodales nisi elit, ultricies vestibulum dolor fringilla eu. 
-    Phasellus rhoncus, sapien volutpat ornare iaculis, ex orci finibus lorem, 
-    a volutpat dui arcu ac metus. Vivamus a condimentum orci. 
-    Cras iaculis erat sed tempor congue. Suspendisse sit amet hendrerit risus. 
-    Mauris commodo fermentum mollis. Maecenas aliquam ex massa, 
-    id volutpat metus lacinia et. Aenean a feugiat lectus. 
-    Sed quis felis eu quam rhoncus ultricies at sit amet eros. 
-    Mauris eu vehicula felis. Morbi in enim volutpat, mattis ipsum non, consequat nulla.
-
-    Nulla facilisi. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; 
-    Nam vel nisl sed orci vestibulum sodales vel id nisl. 
-    Curabitur sit amet ligula ac tortor pellentesque vestibulum at at mauris. 
-    In vel odio a ipsum scelerisque tincidunt eu ac dui. 
-    Praesent pulvinar efficitur urna vitae tempus. 
-    Aenean blandit bibendum purus eget ullamcorper. 
-    Sed facilisis nulla non ornare consequat. Phasellus ultrices dapibus nibh, 
-    id fermentum orci interdum id. Vestibulum venenatis, felis et tincidunt mollis, 
-    arcu mauris suscipit est, a semper lectus ex sit amet nulla. 
-    Mauris arcu neque, tristique id odio id, hendrerit semper mauris. 
-    
-    
-    </div>
-    
-    [Project repository](https://github.com/JulienAlardot/challenge-regression)
-    ''',
-        unsafe_allow_html=True
+        '''
+        ---
+            
+        <div align='justify'>
+            
+        ## ImmoEliza, Challenge-Regression
+        
+        <div align='justify'>
+            
+        This project was made during an AI formation at [Becode](https://becode.org/). The main goals of the project were :
+        
+        1. Create a new database by scrapping real-estate websites
+        2. Clean and analyse the database
+        3. Preprocess the data for the machine learning algorithms
+        4. Find the best algorithm and search for the optimum parameters 
+            
+        The different repositories for each step of the projects are:
+        1. [Database Creation](https://github.com/JulienAlardot/challenge-collecting-data)
+        2. [Data Analysis](https://github.com/JulienAlardot/ImmoElizaVisu)
+        3. [Machine learning preprocessing and Deployment (this step)](https://github.com/JulienAlardot/ImmoElisa)
+        
+        The challenges for this project are extracting the necessary features in a way that would be useful for the algorithms.
+        To fill  the 
+        gaps in the data without negatively impacting the algorithm ability to predict from new data. And to deploy the 
+        algorithm and automatise the whole process to continuously update the database and increase the algorithm ability to 
+        predict .
+        
+        The previous steps in this project were made with different teams. See individual repositories for more informations 
+        about the teams.
+            
+        </div>
+            
+        ''', unsafe_allow_html=True
     )
+
+    st.header("About the author")
+    st.markdown(
+        '''
+        ---
+
+        <div align='justify'>
+
+        ## Who am I?
+        
+        Hi, my name is Julien Alardot and I always loved AIs. Originally a Rigger/skinner and Python tool developer in 
+        the 3D CG production, I am always curious and eager to learn new things especially in python. It is no surprise 
+        that I quickly started to dig in the AI and Machine Learning fields for fun.
+        
+        As I decided to change my career path to a more python-oriented career, AI and Machine Learning became a 
+        somewhat obvious choice. But lacking really finished projects to show in my portfolio and some knowledge 
+        in certain fields. I decided to take the BeCode Training Course, and here we are two month later with the first
+        really "finished" ML project I can be proud of. 
+        
+        Of course, this is only a beginning and I aim to continue to develop this project on the side. 
+        But that is a story for another time.
+
+        ## Links
+        
+        [Github](https://github.com/JulienAlardot)
+        [LinkedIn](https://www.linkedin.com/in/julien-alardot-84151a150/)
+        
+        </div>
+
+        ''', unsafe_allow_html=True)
+
     fig = await map_plotted
     map_plot.plotly_chart(fig, use_container_width=True)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
