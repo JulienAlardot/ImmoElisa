@@ -25,7 +25,7 @@ def plot_map(*args, **kwargs):
 
 
 async def plot_map_async(df_vis, geojson):
-    fig = plot_map(data_frame=df_vis,
+    fig = plot_map(data_frame=df_vis.loc[df_vis["Count"] >= 3, :],
                    geojson=geojson,
                    featureidkey="properties.id",
                    color_continuous_scale='balance',
