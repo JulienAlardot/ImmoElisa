@@ -13,7 +13,7 @@ st.set_page_config(page_title="Immo Eliza Project", layout="wide")
 
 @st.cache(show_spinner=False, suppress_st_warning=True, hash_funcs={st.delta_generator.DeltaGenerator: lambda x: None})
 def load_list(form):
-    with open("ziplist.pkl", "rb") as f:
+    with open("data/ziplist.pkl", "rb") as f:
         s_zip = form.selectbox("Zipcode", pickle.load(f))
     return s_zip
 
@@ -51,12 +51,12 @@ async def plot_map_async(df_vis, geojson):
 
 @st.cache(hash_funcs={dict: lambda x: None}, show_spinner=False)
 def load():
-    with open('postal_district.geojson') as f:
+    with open('data/postal_district.geojson') as f:
         geojson = json.load(f)
-    with open("model.pkl", "rb") as f, open("coord.json", "rt", encoding="utf-8") as jf:
+    with open("data/model.pkl", "rb") as f, open("data/coord.json", "rt", encoding="utf-8") as jf:
         model = pickle.load(f)
         coord = json.load(jf)
-    df_vis = pd.read_csv("database_visu.csv", index_col=0)
+    df_vis = pd.read_csv("data/database_visu.csv", index_col=0)
     px.set_mapbox_access_token(os.environ.get("MAPBOXTOKEN"))
     return model, coord, geojson, df_vis
 

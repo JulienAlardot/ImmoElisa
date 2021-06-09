@@ -10,8 +10,9 @@ import xgboost as xgb
 from sklearn.impute import KNNImputer
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
-with open("coord.json", "rt", encoding="utf-8") as f:
+with open("data/coord.json", "rt", encoding="utf-8") as f:
     geo_data = json.load(f)
 
 pd.options.display.max_colwidth = 300
@@ -141,8 +142,8 @@ df: pd.DataFrame = pd.read_csv(
 
 # df = clean_df(df)
 # df.to_csv("database.csv")
+# df: pd.DataFrame = pd.read_csv("data/database.csv", index_col=0)
 
-df: pd.DataFrame = pd.read_csv("database.csv", index_col=0)
 df: pd.DataFrame = pd.read_csv("https://raw.githubusercontent.com/JulienAlardot/ImmoElizaVisu/main/clean_database.csv",
                                index_col=0)
 
@@ -158,7 +159,7 @@ for column in df.columns:
     if column.lower().startswith("region") or column.lower().startswith("province"):
         df = df.drop(columns=column)
 
-p_c:pd.DataFrame = pd.read_csv("postal_codes.csv", sep=";", index_col=0)
+p_c:pd.DataFrame = pd.read_csv("data/postal_codes.csv", sep=";", index_col=0)
 p_c.loc[:, "Name"] = p_c.loc[:, "Name"] + ", "
 p_c = p_c.groupby("zipcode").sum(numeric_only=False)
 for i, row in p_c.iterrows():
@@ -203,7 +204,7 @@ for dataframe in (df_count, mean_df, med_df, prsqrm_mean_df, prsqrm_median_df):
 
 df_vis = pd.merge(df_vis, p_c, "left", left_on="Locality",right_on="zipcode", suffixes=("", ""))
 
-df_vis.to_csv("database_visu.csv")
+df_vis.to_csv("data/database_visu.csv")
 df.drop(columns=['Locality'], inplace=True)
 
 # df["Locality"] = df["Locality"].astype(str)
@@ -211,17 +212,18 @@ df.drop(columns=['Locality'], inplace=True)
 columns = df.columns
 # print(columns)
 df: np.ndarray = KNNImputer(n_neighbors=5).fit_transform(df.values)
-np.save("database.npy", df)
-df = pd.DataFrame(np.load("database.npy"), columns=columns)
+np.save("data/database.npy", df)
+df = pd.DataFrame(np.load("data/database.npy"), columns=columns)
 print(df.shape)
 
-df.to_csv("database.csv")
+df.to_csv("data/database.csv")
 X: np.ndarray = df.drop(columns=["Price"]).values
 y: np.ndarray = df["Price"].values
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
 
 steps: List = [
     # ("reg", GradientBoostingRegressor()),)
+    ("scaler", StandardScaler()),
     ("reg", xgb.XGBRegressor(tree_method="gpu_hist", gpu_id=0)), ]
 
 pipe: Pipeline = Pipeline(steps=steps)
