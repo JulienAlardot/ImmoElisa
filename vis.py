@@ -173,13 +173,10 @@ async def main():
     del loading_bar
 
     st.header("About the project")
+    st.subheader("ImmoEliza, Challenge-Regression")
     st.markdown(
         '''
             
-        <div align='justify'>
-            
-        ## ImmoEliza, Challenge-Regression
-        
         <div align='justify'>
             
         This project was made during an AI formation at [Becode](https://becode.org/). The main goals of the project 
@@ -212,13 +209,12 @@ async def main():
     )
 
     st.header("About the author")
+    st.subheader("Who am I?")
     st.markdown(
         '''
 
         <div align='justify'>
 
-        ## Who am I?
-        
         Hi, my name is Julien Alardot and I always loved AIs. Originally a Rigger/skinner and Python tool developer in 
         the 3D CG production, I am always curious and eager to learn new things especially in python. It is no surprise 
         that I quickly started to dig in the AI and Machine Learning fields for fun.
@@ -230,12 +226,19 @@ async def main():
         
         Of course, this is only a beginning and I aim to continue to develop this project on the side. 
         But that is a story for another time.
+        
+        </div>
+        
+        ''', unsafe_allow_html=True)
 
-        ## Links
+    st.subheader("Links")
+    st.markdown(
+        '''
+
+        <div align='justify'>
         
-        [Github](https://github.com/JulienAlardot)
-        
-        [LinkedIn](https://www.linkedin.com/in/julien-alardot-84151a150/)
+        - [Github](https://github.com/JulienAlardot)        
+        - [LinkedIn](https://www.linkedin.com/in/julien-alardot-84151a150/)
         
         </div>
 
