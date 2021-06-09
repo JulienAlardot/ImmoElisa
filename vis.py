@@ -25,12 +25,13 @@ def plot_map(*args, **kwargs):
 
 
 async def plot_map_async(df_vis, geojson):
-    fig = plot_map(data_frame=df_vis.loc[df_vis["Count"] >= 3, :],
+    fig = plot_map(data_frame=df_vis.loc[df_vis["Count"] >= 2, :],
                    geojson=geojson,
                    featureidkey="properties.id",
                    color_continuous_scale='balance',
                    locations="Locality",
-                   color='Color',
+                   # color='Color',
+                   color='Median Price/m²',
                    mapbox_style='dark',
                    title='Real estate by locality in Belgium (may 2021)',
                    zoom=6.5,
@@ -42,6 +43,7 @@ async def plot_map_async(df_vis, geojson):
                        "Mean Price": True,
                        "Mean Price / m²": True,
                        "Median Price / m²": True,
+                       "Median Price/m²": True,
                        "Color": False
                    },
                    center={'lat': 50.5039, 'lon': 4.4699})
@@ -191,7 +193,7 @@ async def main():
         
         1. [Database Creation](https://github.com/JulienAlardot/challenge-collecting-data)
         2. [Data Analysis](https://github.com/JulienAlardot/ImmoElizaVisu)
-        3. [Machine learning preprocessing and Deployment (this step)](https://github.com/JulienAlardot/ImmoElisa)
+        3. [Machine learning preprocessing and Deployment](https://github.com/JulienAlardot/ImmoElisa) (this step)
         
         The challenges for this project are extracting the necessary features in a way that would be useful for the 
         algorithms. To fill the gaps in the data without negatively impacting the algorithm ability to predict from new 

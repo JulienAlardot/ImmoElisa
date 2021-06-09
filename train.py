@@ -187,6 +187,7 @@ mean_df.drop(columns=["Price"], inplace=True)
 
 med_df["Median Price"] = np.round(med_df["Price"], 2)
 med_df["Color"] = med_df["Median Price"]
+med_df["Median Price/m²"] = prsqrm_median_df["Price / m²"]
 med_df["Median Price"] = med_df["Median Price"].astype(str) + " €"
 med_df.drop(columns=["Price"], inplace=True)
 
