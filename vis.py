@@ -25,7 +25,7 @@ def plot_map(*args, **kwargs):
 
 
 async def plot_map_async(df_vis, geojson):
-    fig = plot_map(data_frame=df_vis.loc[df_vis["Count"] >= 5, :],
+    fig = plot_map(data_frame=df_vis.loc[df_vis["Count"] >= 3, :],
                    geojson=geojson,
                    featureidkey="properties.id",
                    color_continuous_scale='balance',
@@ -35,7 +35,7 @@ async def plot_map_async(df_vis, geojson):
                    mapbox_style='dark',
                    title='Real estate by locality in Belgium (may 2021)',
                    zoom=6.5,
-                   opacity=0.5,
+                   opacity=0.8,
                    hover_name="Name",
                    hover_data={
                        "Count": True,
